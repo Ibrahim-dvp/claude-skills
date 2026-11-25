@@ -1,7 +1,7 @@
 {
-  "name": "eeyaay-skills",
+  "name": "ibrahim-skills",
   "owner": {
-    "name": "EEYAAY / IB2B ops"
+    "name": "Ibrahim Bensaadoune"
   },
   "plugins": [
     {
@@ -10,5 +10,5 @@
       "description": "Loom-style walkthrough video (cursor, circles, captions, optional ElevenLabs voice-over) plus an illustrated HTML guide of any web app, from one Playwright run."
     }
   ],
-  "description": "Team Claude Code skills for EEYAAY / IB2B ops and delivery."
+  "description": "Claude Code skills by Ibrahim Bensaadoune: Loom-style video guides and more."
 }

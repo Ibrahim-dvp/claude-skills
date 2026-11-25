@@ -52,6 +52,8 @@ working folder (for example `%TEMP%\claude\<name>\rec`) and never into a client 
 
 - **The sign-in rate limit.** A recording signs in many times. Use the saved `storageState`; in a
   "how to sign in" scene, type only the email.
+- **Saved sessions expire.** Run `login.js` again right before every recording. A stale session
+  lands on the login page, and the run dies 30 s later on the first missing element.
 - **An embedded widget on a foreign page is blocked** by its origin allowlist. Serve the fake
   "your website" page *under the app's own origin* with `page.route(BASE + '/fake-path', r => r.fulfill({ body: html }))`.
 - **Buttons with no accessible name:** use `locator('button', { hasText })`, not `getByRole`.
