@@ -263,7 +263,8 @@ module.exports = function recorderKit({
     const bb = await el.boundingBox();
     if (bb && name) {
       focus(name, bb);
-      const x = bb.x + Math.min(26, bb.width / 2); const y = bb.y + Math.min(bb.height / 2, 24);
+      // Click near the right edge of the field: the arrow must not sit on the text being typed.
+      const x = bb.x + bb.width - Math.min(34, bb.width * 0.15); const y = bb.y + Math.min(bb.height / 2, 24);
       await glide(page, x, y);
       await g(page, 'press', x, y);
       await sleep(pace(150));
