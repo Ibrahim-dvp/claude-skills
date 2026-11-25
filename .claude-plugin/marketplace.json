@@ -1,11 +1,14 @@
 {
   "name": "eeyaay-skills",
-  "owner": { "name": "EEYAAY / IB2B ops" },
+  "owner": {
+    "name": "EEYAAY / IB2B ops"
+  },
   "plugins": [
     {
       "name": "video-guide",
       "source": "./plugins/video-guide",
       "description": "Loom-style walkthrough video (cursor, circles, captions, optional ElevenLabs voice-over) plus an illustrated HTML guide of any web app, from one Playwright run."
     }
-  ]
+  ],
+  "description": "Team Claude Code skills for EEYAAY / IB2B ops and delivery."
 }
