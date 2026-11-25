@@ -10,11 +10,11 @@ The repo is private. Your machine's git must already be able to read it: run `gh
 In Claude Code:
 
 ```
-/plugin marketplace add eeyaay-dev/claude-skills
+/plugin marketplace add Ibrahim-dvp/claude-skills
 /plugin install video-guide@eeyaay-skills
 ```
 
-Or from a shell: `claude plugin marketplace add eeyaay-dev/claude-skills`, then
+Or from a shell: `claude plugin marketplace add Ibrahim-dvp/claude-skills`, then
 `claude plugin install video-guide@eeyaay-skills`.
 
 ## Update
