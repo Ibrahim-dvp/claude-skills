@@ -1,6 +1,6 @@
 {
   "name": "video-guide",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Record a Loom-style walkthrough video and an illustrated HTML guide of a web app, with optional ElevenLabs voice-over.",
   "author": {
     "name": "Ibrahim Bensaadoune"

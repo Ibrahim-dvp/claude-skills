@@ -56,6 +56,8 @@
     document.querySelectorAll('a[href="/tickets"] span, a[href="/tickets"] div').forEach(e => { if (/^\d+\+?$/.test(e.textContent.trim())) e.classList.add('__g_hide'); });
     document.querySelectorAll('main *').forEach(e => { if (e.children.length === 0 && /^\d{2,}$/.test(e.textContent.trim())) e.classList.add('__g_hide'); });
     document.querySelectorAll('button[aria-label="Notifiche"] span').forEach(e => e.classList.add('__g_hide'));
+    // Badges on header buttons ("9+") whatever their label: any small all-digit leaf inside a button outside main.
+    document.querySelectorAll('header button *, nav button *, [role=banner] button *').forEach(e => { if (e.children.length === 0 && /^\d+\+?$/.test(e.textContent.trim())) e.classList.add('__g_hide'); });
   };
   setInterval(() => { blurPass(); menuPass(); numPass(); }, 150);
   window.__g = {
