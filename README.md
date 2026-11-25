@@ -1,10 +1,10 @@
 # EEYAAY / IB2B Claude Code skills
 
-A private Claude Code plugin marketplace for the team.
+A Claude Code plugin marketplace for the team.
 
 ## Install (once per person)
 
-The repo is private. Your machine's git must already be able to read it: run `gh auth login`, then
+If the repo is ever made private, your machine's git must be able to read it first: run `gh auth login`, then
 `gh auth setup-git`.
 
 In Claude Code:
