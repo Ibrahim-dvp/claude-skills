@@ -7,7 +7,7 @@
     {
       "name": "video-guide",
       "source": "./plugins/video-guide",
-      "description": "Loom-style walkthrough video (cursor, circles, captions, optional ElevenLabs voice-over) plus an illustrated HTML guide of any web app, from one Playwright run."
+      "description": "Polished walkthrough video (camera zoom, gliding cursor, captions, cross-fades, optional ElevenLabs voice-over) plus an illustrated HTML guide of any web app, from one Playwright run."
     }
   ],
   "description": "Claude Code skills by Ibrahim Bensaadoune: Loom-style video guides and more."
