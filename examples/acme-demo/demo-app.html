@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Acme Support</title>
+<style>
+:root{--acc:#4f46e5;--ink:#111827;--mut:#6b7280;--line:#e5e7eb;--bg:#f9fafb}
+*{box-sizing:border-box}body{margin:0;font:15px/1.5 'Segoe UI',system-ui,sans-serif;color:var(--ink);background:var(--bg);display:flex;height:100vh}
+aside{width:220px;background:#fff;border-right:1px solid var(--line);padding:18px 12px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px;margin:0 8px 22px}
+.brand i{width:26px;height:26px;border-radius:8px;background:var(--acc);display:inline-block}
+nav a{display:block;padding:9px 12px;border-radius:8px;color:var(--ink);text-decoration:none;margin:2px 0}
+nav a.on{background:#eef2ff;color:var(--acc);font-weight:600}
+main{flex:1;overflow:auto}
+header{height:56px;border-bottom:1px solid var(--line);background:#fff;display:flex;align-items:center;justify-content:flex-end;padding:0 24px;gap:14px}
+.avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#a5b4fc,#4f46e5)}
+.wrap{padding:28px 32px;max-width:1000px}
+h1{font-size:24px;margin:0 0 4px}.sub{color:var(--mut);margin:0 0 22px}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px}
+.card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px}
+.card b{display:block;font-size:26px;margin-top:4px}
+table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+th,td{text-align:left;padding:12px 14px;border-bottom:1px solid var(--line)}th{color:var(--mut);font-weight:600;font-size:13px}
+tr.row{cursor:pointer}tr.row:hover{background:#f5f7ff}
+.pill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:600}
+.open{background:#fef3c7;color:#92400e}.pending{background:#e0e7ff;color:#3730a3}.solved{background:#dcfce7;color:#166534}
+input[type=search]{width:320px;padding:9px 12px;border:1px solid var(--line);border-radius:8px;margin-bottom:14px;font:inherit}
+.msg{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:12px}.msg small{color:var(--mut)}
+.msg.agent{border-color:#c7d2fe;background:#f5f7ff}
+textarea{width:100%;height:90px;border:1px solid var(--line);border-radius:10px;padding:10px;font:inherit}
+button{background:var(--acc);color:#fff;border:0;border-radius:8px;padding:9px 16px;font:inherit;font-weight:600;cursor:pointer}
+button.ghost{background:#fff;color:var(--ink);border:1px solid var(--line)}
+.row2{display:flex;gap:10px;margin-top:10px;align-items:center}
+select{padding:8px 10px;border:1px solid var(--line);border-radius:8px;font:inherit}
+.toggle{display:flex;align-items:center;justify-content:space-between;background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:12px}
+.sw{width:44px;height:24px;border-radius:999px;background:#d1d5db;position:relative;cursor:pointer;border:0;padding:0}
+.sw::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.2s}
+.sw.on{background:var(--acc)}.sw.on::after{left:23px}
+.toast{position:fixed;top:70px;right:24px;background:#111827;color:#fff;padding:10px 16px;border-radius:10px;display:none}
+</style></head>
+<body>
+<aside><div class="brand"><i></i>Acme Support</div>
+<nav><a href="#/dashboard" data-r="dashboard">Dashboard</a><a href="#/tickets" data-r="tickets">Tickets</a><a href="#/settings" data-r="settings">Settings</a></nav></aside>
+<main><header><span style="color:var(--mut)">Demo workspace</span><div class="avatar"></div></header><div class="wrap" id="view"></div></main>
+<div class="toast" id="toast"></div>
+<script>
+const tickets=[
+ {id:1042,subj:"Can't reset my password",who:"Jane Doe",st:"open",t:"5 min ago"},
+ {id:1041,subj:"Invoice shows the wrong address",who:"Sam Rivera",st:"pending",t:"1 h ago"},
+ {id:1040,subj:"How do I export my data?",who:"Alex Kim",st:"open",t:"3 h ago"},
+ {id:1039,subj:"Order arrived damaged",who:"Priya Shah",st:"solved",t:"yesterday"},
+ {id:1038,subj:"Change of delivery date",who:"Tom Becker",st:"solved",t:"yesterday"}];
+const pill=s=>`<span class="pill ${s}">${s[0].toUpperCase()+s.slice(1)}</span>`;
+const V={
+ dashboard:()=>`<h1>Good morning, Taylor</h1><p class="sub">Here is what needs your attention today.</p>
+  <div class="cards"><div class="card">Open tickets<b>2</b></div><div class="card">Waiting on customer<b>1</b></div><div class="card">Solved this week<b>18</b></div></div>
+  <h3>Latest tickets</h3>${table(tickets.slice(0,3))}`,
+ tickets:()=>`<h1>Tickets</h1><p class="sub">Every request from email and chat, in one list.</p>
+  <input type="search" id="q" placeholder="Search by subject or customer" oninput="filter()">${table(tickets)}`,
+ settings:()=>`<h1>Settings</h1><p class="sub">Your personal preferences.</p>
+  <div class="toggle"><div><b>Email notifications</b><br><small style="color:var(--mut)">Get an email when a customer replies</small></div><button class="sw on" aria-label="Email notifications" onclick="this.classList.toggle('on')"></button></div>
+  <div class="toggle"><div><b>Two-step verification</b><br><small style="color:var(--mut)">Ask for a code at every sign-in</small></div><button class="sw" aria-label="Two-step verification" onclick="this.classList.toggle('on');toast('Saved')"></button></div>`};
+function table(list){return `<table><thead><tr><th>#</th><th>Subject</th><th>Customer</th><th>Status</th><th>Updated</th></tr></thead><tbody>${list.map(t=>`<tr class="row" onclick="location.hash='#/tickets/${t.id}'"><td>${t.id}</td><td>${t.subj}</td><td>${t.who}</td><td>${pill(t.st)}</td><td>${t.t}</td></tr>`).join('')}</tbody></table>`}
+function filter(){const q=document.getElementById('q').value.toLowerCase();document.querySelectorAll('tbody tr').forEach(r=>r.style.display=r.textContent.toLowerCase().includes(q)?'':'none')}
+function ticket(id){const t=tickets.find(x=>x.id==id);return `<p class="sub"><a href="#/tickets">Tickets</a> / #${t.id}</p><h1>${t.subj}</h1><p class="sub">${t.who} · ${pill(t.st)}</p>
+ <div class="msg"><small>${t.who} · ${t.t}</small><p>Hi, I tried to reset my password three times but the email never arrives. Can you help?</p></div>
+ <div id="thread"></div>
+ <label for="reply"><b>Your reply</b></label><textarea id="reply" placeholder="Write a reply to the customer"></textarea>
+ <div class="row2"><button onclick="send()">Send reply</button><select aria-label="Status" onchange="toast('Status updated')"><option>Open</option><option>Pending</option><option>Solved</option></select></div>`}
+function send(){const v=document.getElementById('reply').value;if(!v)return;document.getElementById('thread').innerHTML+=`<div class="msg agent"><small>You · just now</small><p>${v}</p></div>`;document.getElementById('reply').value='';toast('Reply sent')}
+function toast(m){const e=document.getElementById('toast');e.textContent=m;e.style.display='block';setTimeout(()=>e.style.display='none',1800)}
+function route(){const h=location.hash.replace('#/','')||'dashboard';const [r,id]=h.split('/');document.querySelectorAll('nav a').forEach(a=>a.classList.toggle('on',a.dataset.r===r));document.getElementById('view').innerHTML=id?ticket(id):V[r]()}
+addEventListener('hashchange',route);route();
+</script></body></html>

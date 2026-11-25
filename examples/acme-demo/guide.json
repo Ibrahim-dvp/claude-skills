@@ -1,0 +1,18 @@
+{
+  "languages": ["en"],
+  "text": { "en": {
+    "title": "Acme Support: getting started",
+    "sub": "A step-by-step guide built automatically by the video-guide skill",
+    "stepWord": "Step",
+    "sections": [ { "h": "Before you start", "items": [
+      "Each picture marks with an orange ring where to click.",
+      "A narrated video shows the same steps.",
+      "Acme Support is a fictional demo app; every name in it is invented."
+    ] } ],
+    "stepsH": "The steps, one by one",
+    "tryH": "Try it yourself",
+    "tryIntro": "Tick each one as you go.",
+    "tries": ["Find the password ticket and reply to it.", "Set the ticket to Solved.", "Turn on two-step verification."]
+  } },
+  "translate": {}
+}

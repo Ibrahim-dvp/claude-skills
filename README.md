@@ -4,6 +4,10 @@ Skills for [Claude Code](https://claude.com/claude-code), packaged as a plugin m
 
 ## 🎬 video-guide: Loom-style video guides, recorded by Claude
 
+![video-guide demo](examples/acme-demo/output/preview.gif)
+
+▶️ **[Watch the full narrated demo (1:45)](examples/acme-demo/output/video-guide-demo.mp4)** · 📄 **[See the guide it built](examples/acme-demo/output/acme-guide_EN.html)** · 🧪 [Source of the demo](examples/acme-demo/)
+
 Ask Claude *"make a video guide of our app"*. It writes a Playwright scenario, records the app, and gives you back **two deliverables from the same run**:
 
 1. **A walkthrough video** that looks screen-recorded by a person:
