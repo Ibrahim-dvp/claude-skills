@@ -1,0 +1,8 @@
+node_modules/
+*.mp4
+*.webm
+voice/
+shots/
+jpg/
+vid/
+cut/

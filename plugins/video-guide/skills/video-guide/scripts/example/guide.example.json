@@ -1,0 +1,58 @@
+{
+  "languages": ["it", "en"],
+  "text": {
+    "it": {
+      "title": "Guida alla piattaforma",
+      "sub": "Prova passo per passo",
+      "stepWord": "Passo",
+      "sections": [
+        { "h": "Prima di iniziare", "items": [
+          "Questa guida vi accompagna passo per passo. Ogni immagine indica con un cerchio arancione dove cliccare.",
+          "La prova si fa su un <b>ambiente di test</b>: nessun cliente vero vede nulla.",
+          "Insieme alla guida trovate un <b>video</b> che mostra gli stessi passaggi."
+        ] },
+        { "h": "Cosa vi serve", "items": [
+          "L'email di invito con il pulsante per scegliere la password.",
+          "L'indirizzo della piattaforma: <a href=\"https://staging.example.com\">https://staging.example.com</a>"
+        ] }
+      ],
+      "stepsH": "I passaggi, uno per uno",
+      "tryH": "Le prove da fare",
+      "tryIntro": "Per ogni prova: funziona / non funziona / commento.",
+      "tries": ["Trovate una richiesta cercando il nome del cliente."],
+      "backH": "Cosa ci rimandate",
+      "back": "Rispondete alla nostra email con l'elenco delle prove e le eventuali foto dello schermo."
+    },
+    "en": {
+      "title": "Platform guide (EN twin, internal review)",
+      "sub": "Step-by-step test",
+      "stepWord": "Step",
+      "sections": [
+        { "h": "Before you start", "items": [
+          "This guide walks you through step by step. Each picture marks with an orange circle where to click.",
+          "The test runs on a <b>test environment</b>: no real customer sees anything.",
+          "With the guide there is a <b>video</b> showing the same steps."
+        ] },
+        { "h": "What you need", "items": [
+          "The invitation email with the button to choose a password.",
+          "The platform address: <a href=\"https://staging.example.com\">https://staging.example.com</a>"
+        ] }
+      ],
+      "stepsH": "The steps, one by one",
+      "tryH": "The tests to run",
+      "tryIntro": "For each test: works / does not work / comment.",
+      "tries": ["Find a request by searching the customer's name."],
+      "backH": "What to send back",
+      "back": "Reply to our email with the list of tests and any screenshots."
+    }
+  },
+  "translate": {
+    "en": {
+      "1. La pagina iniziale": "1. The home page",
+      "2. Cercare una richiesta": "2. Finding a request",
+      "Questa è la pagina iniziale: cosa richiede attenzione adesso.": "This is the home page: what needs attention now.",
+      "Tutte le richieste sono qui: un clic su <b>Richieste</b>.": "All requests are here: one click on <b>Richieste</b>.",
+      "Ecco la richiesta: un clic per aprirla.": "Here is the request: one click opens it."
+    }
+  }
+}
