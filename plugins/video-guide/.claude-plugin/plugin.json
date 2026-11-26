@@ -1,6 +1,6 @@
 {
   "name": "video-guide",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Record a polished product walkthrough video (camera zoom, eased cursor, cross-fades, continuous ElevenLabs voice-over) and an illustrated HTML guide of a web app, with one command.",
   "author": {
     "name": "Ibrahim Bensaadoune"

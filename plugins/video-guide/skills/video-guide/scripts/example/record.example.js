@@ -3,7 +3,11 @@
 // Run: node make.js --scenario record.js --guide guide.json --voice <id> --out out/guida
 //      (leave out --voice for a silent video; "--voice stub" rehearses the timing for free)
 const { chromium } = require('playwright');
-const kit = require('./recorder-kit')({ overlay: 'overlay.js', locale: 'it-IT', chapterWord: 'Capitolo' });
+const kit = require('./recorder-kit')({
+  overlay: 'overlay.js', locale: 'it-IT', chapterWord: 'Capitolo',
+  // Which elements are list rows and counters in YOUR app (used by window.__keep / __hideCounts below).
+  privacy: { rows: 'a[href^="/richieste/"]', counts: 'nav a span, header button *' },
+});
 
 const BASE = 'https://staging.example.com'; // STAGING only, never production
 

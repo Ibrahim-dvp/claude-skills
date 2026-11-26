@@ -11,6 +11,7 @@
 // Every step is cached: its inputs are hashed into .make/state.json and it runs again only when
 // one of them changed (or its output is missing). Editing a caption re-does everything after the
 // dry pass; editing only guide.json rebuilds only the guide; a second run with no change does nothing.
+// Inputs are hashed by content, outputs only by name (an output that exists must not change the key).
 //
 // Options
 //   --scenario <file>     the Playwright scenario (default record.js)
@@ -20,7 +21,8 @@
 //   --voice <id|stub>     narrate with this ElevenLabs voice; leave out for a silent video
 //   --deps a.html,b.json  extra files the scenario reads: a change in one re-records
 //   --no-zoom             static camera          --no-spotlight   do not dim around the highlight
-//   --fps N, --size WxH, --xfade S, --transition NAME, --music FILE, --music-db N   passed to assemble.js
+//   --fps N, --size WxH, --xfade S, --transition NAME, --music FILE, --music-db N,
+//   --room-db N, --no-room   passed to assemble.js (see its header)
 //   --force               ignore the cache
 const fs = require('fs');
 const path = require('path');
@@ -37,7 +39,10 @@ const guide = opt('--guide');
 const guideOut = opt('--guide-out', `${out}-guide`);
 const voice = opt('--voice');
 const deps = (opt('--deps', '') || '').split(',').filter(Boolean);
-const pass = ['--fps', '--size', '--xfade', '--transition', '--music', '--music-db'].flatMap((n) => (opt(n) ? [n, opt(n)] : []));
+const pass = [
+  ...['--fps', '--size', '--xfade', '--transition', '--music', '--music-db', '--room-db'].flatMap((n) => (opt(n) !== undefined ? [n, opt(n)] : [])),
+  ...['--no-zoom', '--no-room'].filter(flag),
+];
 if (!fs.existsSync(scenario)) { console.error(`scenario not found: ${scenario}`); process.exit(1); }
 fs.mkdirSync(path.dirname(out), { recursive: true });
 fs.mkdirSync(path.dirname(guideOut), { recursive: true });
@@ -45,9 +50,12 @@ fs.mkdirSync('.make', { recursive: true });
 
 const stateFile = '.make/state.json';
 const state = fs.existsSync(stateFile) && !flag('--force') ? JSON.parse(fs.readFileSync(stateFile, 'utf8')) : {};
+// A cache key. file('x') is hashed by CONTENT (an input); anything else is hashed as plain text.
+// Never pass an output path through file(): the key would change the moment the output exists.
+const file = (p) => ({ file: p });
 const hash = (...parts) => {
   const h = crypto.createHash('sha1');
-  for (const p of parts) h.update(typeof p === 'string' && fs.existsSync(p) && fs.statSync(p).isFile() ? fs.readFileSync(p) : String(p)).update('|');
+  for (const p of parts) h.update(p && p.file !== undefined ? (fs.existsSync(p.file) ? fs.readFileSync(p.file) : 'missing') : String(p)).update('|');
   return h.digest('hex').slice(0, 16);
 };
 const run = (label, file, args = [], env = {}) => {
@@ -66,8 +74,8 @@ const step = (name, key, outputs, fn) => {
 };
 
 const looks = { VG_ZOOM: flag('--no-zoom') ? '0' : '1', VG_SPOTLIGHT: flag('--no-spotlight') ? '0' : '1' };
-const base = hash(scenario, here('recorder-kit.js'), here('overlay.js'), ...deps, JSON.stringify(looks));
-const guideKey = () => hash(guide, here('build-guide.js'), 'steps.json');
+const base = hash(file(scenario), file(here('recorder-kit.js')), file(here('overlay.js')), ...deps.map(file), JSON.stringify(looks));
+const guideKey = () => hash(file(guide), file(here('build-guide.js')), file('steps.json'));
 const buildGuide = (label) => run(label, here('build-guide.js'), [guide, guideOut]);
 
 let voiceKey = 'silent';
@@ -79,7 +87,7 @@ if (voice) {
   });
   // voice.js has its own per-line cache, so it always runs: no call is made for a clip that exists.
   run('voice', here('voice.js'), voice === 'stub' ? ['--stub'] : ['--voice', voice]);
-  voiceKey = hash('voice/manifest.json');
+  voiceKey = hash(file('voice/manifest.json'));
 }
 const recKey = hash(base, voiceKey);
 step('record', recKey, ['segments.json', 'steps.json'], () => {
@@ -88,8 +96,8 @@ step('record', recKey, ['segments.json', 'steps.json'], () => {
   for (const v of Object.values(t.videos)) if (!fs.existsSync(v)) { console.error(`recording missing: ${v}`); process.exit(1); }
 });
 const mp4 = `${out}.mp4`;
-step('assemble', hash(recKey, here('assemble.js'), here('camera.js'), JSON.stringify(pass), flag('--no-zoom'), mp4), [mp4], () => {
-  run('assemble', here('assemble.js'), [mp4, ...pass, ...(flag('--no-zoom') ? ['--no-zoom'] : [])]);
+step('assemble', hash(recKey, file(here('assemble.js')), file(here('camera.js')), JSON.stringify(pass), mp4), [mp4], () => {
+  run('assemble', here('assemble.js'), [mp4, ...pass]);
 });
 if (guide) {
   const files = JSON.parse(fs.readFileSync(guide, 'utf8')).languages.map((l) => `${guideOut}_${l.toUpperCase()}.html`);

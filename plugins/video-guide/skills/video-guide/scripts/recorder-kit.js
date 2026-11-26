@@ -29,13 +29,16 @@ module.exports = function recorderKit({
   spotlight = true,   // dim the rest of the screen around the highlighted element
   accent = '#e4572e', // ring, badge and title-card colour, as #rrggbb
   xfade = 500,        // ms of cross-fade at every join (title cards, kit.cut, page changes)
+  // What overlay.js blurs and hides when the scenario sets window.__keep / window.__hideCounts.
+  // These defaults fit one app; give your own CSS selectors for yours (see SKILL.md, "Privacy").
+  privacy = {},       // { rows, rowBox, counts, hide, mainNumbers }
 } = {}) {
   const env = process.env;
   if (env.VG_ZOOM === '0') zoom = false;
   if (env.VG_SPOTLIGHT === '0') spotlight = false;
   const DRY = env.VG_DRY === '1';
   const BREATH = 450; // silence left after a spoken line before the next thing happens
-  const OVER = `window.__gOpts=${JSON.stringify({ accent, spotlight })};` + fs.readFileSync(overlay, 'utf8');
+  const OVER = `window.__gOpts=${JSON.stringify({ accent, spotlight, privacy })};` + fs.readFileSync(overlay, 'utf8');
   const sleep = (ms) => new Promise((r) => setTimeout(r, Math.max(0, ms)));
   const pace = (ms) => (DRY ? Math.min(ms, 40) : ms); // presentational waits collapse on a dry pass
   const log = (...a) => console.log(new Date().toISOString().slice(11, 19), ...a);
@@ -46,10 +49,11 @@ module.exports = function recorderKit({
   const pages = {};    // name -> {page, ctx, t0, scale}
   const spoken = new Set();
   const cues = [];     // {page, t, line}       voice clip starts
-  const captions = []; // {page, from, to, file} caption bar on screen
+  const captions = []; // {page, from, to, file, target?} caption bar on screen; target = the rectangle it talks about
   const cam = [];      // {page, t, type:'focus', x,y,w,h, max} | {page, t, type:'release'}
   const marks = [];    // {page, t} magenta flashes, to line our clock up with the recording's
   const hiDpi = new WeakSet();
+  let warned1x = false;
   let shotN = 0;
   let chapter = '';
   let cur = null;        // the live segment
@@ -73,6 +77,10 @@ module.exports = function recorderKit({
 
   async function openPage(browser, name, opts = {}) {
     const scale = hiDpi.has(browser) ? 2 : 1;
+    if (scale === 1 && zoom && !DRY && !warned1x) {
+      warned1x = true;
+      console.warn('WARNING: this browser was started with chromium.launch(), so the page is recorded at 1x and the camera zoom will look soft. Start it with kit.launch(chromium) to record at 2x.');
+    }
     const size = { width: viewport.width * scale, height: viewport.height * scale };
     const ctx = await browser.newContext({ viewport, locale, deviceScaleFactor: scale, ...(DRY ? {} : { recordVideo: { dir: `vid/${name}`, size } }), ...opts });
     await ctx.addInitScript(OVER);
@@ -144,14 +152,16 @@ module.exports = function recorderKit({
   }
 
   // Caption bar ('' clears it). Returns the length of its spoken clip (0 without voice).
-  async function caption(page, text) {
+  // `target` (a bounding box) is what the caption talks about: assemble.js moves the bar to the
+  // top of the frame when it would otherwise sit on that rectangle.
+  async function caption(page, text, target) {
     const name = nameOf(page);
     if (!text) { closeCap(); return 0; }
     const file = await renderCap(pages[name].browser, text);
     const clip = VOICE && VOICE[plain(text)];
     if (clip) await sleep(Math.max(speechEnd + 250, quietUntil) - Date.now()); // the caption appears with its voice, not before
     closeCap();
-    if (live(name)) openCap = { page: name, from: now(name), file };
+    if (live(name)) openCap = { page: name, from: now(name), file, ...(target ? { target: { x: target.x, y: target.y, w: target.width, h: target.height } } : {}) };
     return cue(page, plain(text));
   }
   // Caption that stays up at least `ms`, and as long as its voice plus a breath.
@@ -202,10 +212,13 @@ module.exports = function recorderKit({
   }
 
   // A still for the HTML guide (the guide prints the caption text itself).
+  // Taken at the device scale, NOT with { scale: 'css' }: to make a CSS-pixel screenshot Chromium
+  // drops the page to 1x for a moment, and the recording catches it as one or two frames of the
+  // page shrunk into the top-left corner on grey. build-guide.js scales the stills down anyway.
   async function shot(page, text) {
     shotN += 1;
     const file = `guide-${String(shotN).padStart(2, '0')}.png`;
-    await page.screenshot({ path: `shots/${file}`, scale: 'css' });
+    await page.screenshot({ path: `shots/${file}` });
     steps.push({ n: shotN, file, chapter, text });
   }
 
@@ -238,7 +251,7 @@ module.exports = function recorderKit({
     bb = (await el.boundingBox()) || bb; // a hover style may have resized it
     rb = ring ? (await framed.boundingBox()) || rb : bb;
     await g(page, 'ring', rb.x, rb.y, rb.width, rb.height, badge || null, spot);
-    const v = await caption(page, text);
+    const v = await caption(page, text, rb);
     if (v) hold = Math.max(hold, v + BREATH);
     await sleep(DRY ? 560 : 900); // the ring has finished moving before the still
     if (still) await shot(page, text);

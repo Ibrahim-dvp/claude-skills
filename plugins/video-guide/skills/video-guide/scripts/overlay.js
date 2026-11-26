@@ -1,11 +1,22 @@
 // Injected into the TOP page only. Draws what must move WITH the page when the camera zooms:
 // the cursor, the highlight ring + spotlight, the step badge, the click ripple, the title cards.
 // The caption bar is NOT drawn here: assemble.js composites it after the zoom, so a zoom can
-// never crop it. Also blurs list rows that are not ours (privacy on a shared test server).
+// never crop it. Also blurs list rows that are not ours (privacy on a shared test server): which
+// rows and which counters is set by the kit's `privacy` option, see P below.
 (() => {
   if (window.top !== window || window.__g) return;
   const O = Object.assign({ accent: '#e4572e', spotlight: true }, window.__gOpts || {});
   const A = O.accent;
+  // Privacy selectors. The defaults are the ones of the app this was first written for; pass your
+  // own through recorderKit({ privacy: { ... } }). Nothing happens until the scenario sets
+  // window.__keep (rows) or window.__hideCounts (counters).
+  const P = Object.assign({
+    rows: 'a[href^="/tickets/c"], a[href^="/customers/c"]', // one element per list row: the row is blurred unless it contains a __keep text
+    rowBox: 'tr, li',                                        // the ancestor to blur (the element itself when it has none)
+    counts: 'a[href="/tickets"] span, a[href="/tickets"] div, header button *, nav button *, [role=banner] button *', // hidden when their whole text is a number ("12", "9+")
+    hide: 'button[aria-label="Notifiche"] span',             // always hidden
+    mainNumbers: true,                                       // also hide any bare number of 2+ digits inside <main>
+  }, O.privacy || {});
   const css = `
   #__g_cursor{position:fixed;left:0;top:0;width:30px;height:30px;z-index:2147483647;pointer-events:none;will-change:transform}
   #__g_cursor svg{display:block;transform-origin:6px 4px;transition:transform .11s ease-out;filter:drop-shadow(0 3px 4px rgba(0,0,0,.38))}
@@ -65,8 +76,9 @@
   const keep = () => (window.__keep || []);
   const blurPass = () => {
     if (!keep().length) return;
-    document.querySelectorAll('a[href^="/tickets/c"], a[href^="/customers/c"]').forEach((a) => {
-      const row = a.closest('tr, li') || a;
+    if (!P.rows) return;
+    document.querySelectorAll(P.rows).forEach((a) => {
+      const row = (P.rowBox && a.closest(P.rowBox)) || a;
       row.classList.toggle('__g_blur', !keep().some((k) => row.textContent.includes(k)));
     });
   };
@@ -79,11 +91,9 @@
   const numPass = () => {
     if (!window.__hideCounts) return;
     // Counters come from the shared test server and would mislead the viewer: hide them.
-    document.querySelectorAll('a[href="/tickets"] span, a[href="/tickets"] div').forEach((e) => { if (/^\d+\+?$/.test(e.textContent.trim())) e.classList.add('__g_hide'); });
-    document.querySelectorAll('main *').forEach((e) => { if (e.children.length === 0 && /^\d{2,}$/.test(e.textContent.trim())) e.classList.add('__g_hide'); });
-    document.querySelectorAll('button[aria-label="Notifiche"] span').forEach((e) => e.classList.add('__g_hide'));
-    // Badges on header buttons ("9+") whatever their label: any small all-digit leaf inside a button outside main.
-    document.querySelectorAll('header button *, nav button *, [role=banner] button *').forEach((e) => { if (e.children.length === 0 && /^\d+\+?$/.test(e.textContent.trim())) e.classList.add('__g_hide'); });
+    if (P.counts) document.querySelectorAll(P.counts).forEach((e) => { if (/^\d+\+?$/.test(e.textContent.trim())) e.classList.add('__g_hide'); });
+    if (P.mainNumbers) document.querySelectorAll('main *').forEach((e) => { if (e.children.length === 0 && /^\d{2,}$/.test(e.textContent.trim())) e.classList.add('__g_hide'); });
+    if (P.hide) document.querySelectorAll(P.hide).forEach((e) => e.classList.add('__g_hide'));
   };
   setInterval(() => { blurPass(); menuPass(); numPass(); }, 150);
 

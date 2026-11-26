@@ -6,7 +6,7 @@ Skills for [Claude Code](https://claude.com/claude-code), packaged as a plugin m
 
 ![video-guide demo](examples/acme-demo/output/preview.gif)
 
-▶️ **[Watch the full narrated demo (1:51)](examples/acme-demo/output/video-guide-demo.mp4)** · 📄 **[See the guide it built](examples/acme-demo/output/acme-guide_EN.html)** · 🧪 [Source of the demo](examples/acme-demo/)
+▶️ **[Watch the full narrated demo (1:50)](examples/acme-demo/output/video-guide-demo.mp4)** · 📄 **[See the guide it built](examples/acme-demo/output/acme-guide_EN.html)** · 🧪 [Source of the demo](examples/acme-demo/)
 
 Ask Claude *"make a video guide of our app"*. It writes a Playwright scenario, records the app, and gives you back **two deliverables from the same run**:
 
@@ -14,16 +14,16 @@ Ask Claude *"make a video guide of our app"*. It writes a Playwright scenario, r
    - a **camera that zooms and pans** to each step and eases back out, like Screen Studio's auto-zoom;
    - a cursor that glides along a curved path, really hovers the element (the app's own hover styles show) and squishes when it clicks;
    - a soft highlight ring with a step number, and a spotlight that dims the rest of the screen;
-   - captions that fade and slide in, and are never cropped by the zoom;
+   - captions that fade and slide in, are never cropped by the zoom, and move to the top when they would cover the button they describe;
    - animated chapter title cards, with **cross-fades** instead of hard cuts;
-   - optional **AI voice-over** ([ElevenLabs](https://elevenlabs.io)) that sounds like one continuous take: each line is generated with its neighbours as context, no step ends before its sentence has, and the track is normalised to −16 LUFS.
+   - optional **AI voice-over** ([ElevenLabs](https://elevenlabs.io)) that sounds like one continuous take: each line is generated with its neighbours as context, no step ends before its sentence has, the track is normalised to −16 LUFS, and a very quiet room tone fills the gaps between lines.
 2. **An illustrated step-by-step guide.** It is a single HTML file with every screenshot embedded and the click target circled and numbered, ready to email. It can come in several languages from one recording.
 
 Because both come from one script, **the video and the screenshots always show the same thing**. When the app changes, you re-record with one command instead of re-shooting by hand.
 
 ### What makes it practical for real projects
 
-- **Privacy on shared test servers.** Rows and menu items that don't belong to your demo data are blurred, and counters can be hidden.
+- **Privacy on shared test servers.** Rows and menu items that don't belong to your demo data are blurred, and counters can be hidden. You tell it which elements are rows and counters in your app with a few CSS selectors (the `privacy` option; the built-in defaults fit one particular app).
 - **No passwords during recording.** Test accounts sign in once and the session is reused. This also avoids sign-in rate limits.
 - **The voice is cached per sentence**, so re-recording after a UI change costs no new characters, and a silent rehearsal mode costs none at all.
 - **No hidden notes in client deliverables.** The guide builder refuses to write HTML comments.
@@ -50,7 +50,7 @@ Update later with `/plugin marketplace update ibrahim-skills`.
 ### Requirements
 
 - Node.js 18+, then `npm i playwright` and `npx playwright install chromium` in your working folder
-- `ffmpeg` and `ffprobe` on your PATH
+- `ffmpeg` and `ffprobe` on your PATH, **version 7.1 or newer** (older builds use an untested fallback)
 - Optional, for the voice-over: an ElevenLabs API key in `~/.elevenlabs-key` or `ELEVENLABS_API_KEY`. For anything you publish or give to a client, use a plan whose licence allows commercial use.
 
 ### One command
@@ -68,9 +68,10 @@ node make.js --scenario record.js --guide guide.json --voice <voice id> --out ou
 | guide | Writes `<out>-guide_EN.html` (one file per language). |
 
 Every step is cached on its inputs, so a second run only redoes what changed. Options:
-`--no-zoom` (static camera), `--no-spotlight` (no dimming), `--size 1920x1080`, `--fps 50`,
-`--xfade 0.5`, `--music bed.mp3` (your own licensed file, kept very quiet and ducked under the
-voice; no music is shipped), `--force`.
+`--no-zoom` (static camera), `--no-spotlight` (no dimming), `--size 1920x1080` (must keep the
+recording's 16:9 shape; another shape is refused, not stretched), `--fps 50`, `--xfade 0.5`
+(`0` = hard cuts), `--no-room` or `--room-db -60` (the room tone under the voice), `--music bed.mp3`
+(your own licensed file, kept very quiet and ducked under the voice; no music is shipped), `--force`.
 
 ### How it works
 
@@ -78,7 +79,7 @@ voice; no music is shipped), `--force`.
 |---|---|
 | `make.js` | Runs the whole pipeline, with a cache. |
 | `recorder-kit.js` | `show(page, locator, caption, { click })` sends the camera and the cursor to the element, hovers it, rings it, captions it, takes a still and clicks. Also `titleCard`, `say`, `typeSlow`, `scroll`, `cut` (hide a page load behind a cross-fade), chapters and segments. |
-| `overlay.js` | Injected into each page. Draws the cursor, ring, spotlight, badge, ripple and title cards, and blurs data that isn't part of the demo. |
+| `overlay.js` | Injected into each page. Draws the cursor, ring, spotlight, badge, ripple and title cards, and blurs data that isn't part of the demo (selectors set with the kit's `privacy` option). |
 | `voice.js` | ElevenLabs text-to-speech with request stitching: `--list-voices`, `--voice <id>`, `--stub`. |
 | `assemble.js`, `camera.js` | The edit, with ffmpeg: the zoom is applied after recording from the target rectangles the kit logged, as one eased curve; captions are composited on top afterwards. |
 | `build-guide.js` | The HTML guide in any number of languages, built from `guide.json`. |

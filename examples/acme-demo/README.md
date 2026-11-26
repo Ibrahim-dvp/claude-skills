@@ -9,7 +9,7 @@ name in it are invented.
 | `record.js` | The scenario: 5 chapters written with `recorder-kit.js`. |
 | `guide.json` | Texts for the HTML guide. |
 | `narration.json` | Spoken text where it should differ from the caption. |
-| `output/` | `video-guide-demo.mp4` (narrated, 1:51, 1280x720 at 50 fps), `preview.gif`, `acme-guide_EN.html`. |
+| `output/` | `video-guide-demo.mp4` (narrated, 1:50, 1280x720 at 50 fps), `preview.gif`, `acme-guide_EN.html`. |
 
 ## Reproduce
 

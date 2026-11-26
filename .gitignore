@@ -1,5 +1,7 @@
 node_modules/
 *.mp4
+# the demo video is the one mp4 that is tracked (the README links to it)
+!examples/acme-demo/output/*.mp4
 *.webm
 voice/
 shots/

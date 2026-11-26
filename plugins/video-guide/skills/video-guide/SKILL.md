@@ -28,7 +28,10 @@ timing and the edit with silent clips, **before spending any ElevenLabs characte
 | `--no-spotlight` | Do not dim the screen around the highlighted element. |
 | `--deps a.html,b.json` | Extra files the scenario reads; a change in one re-records. |
 | `--guide-out <prefix>` | Where the guide goes (default `<out>-guide`). |
-| `--fps 50` `--size 1920x1080` `--xfade 0.5` `--transition fade` | Passed to `assemble.js`. |
+| `--fps 50` `--transition fade` | Passed to `assemble.js`. |
+| `--size 1920x1080` | Output size. It must have the shape of the recording (16:9 for the default 1280x720 viewport) and even numbers; anything else is refused with the size to use instead, because it would stretch the picture. For another shape, set the kit's `viewport`. |
+| `--xfade 0.5` | Seconds of cross-fade at every join. `--xfade 0` gives hard cuts. |
+| `--room-db -60` `--no-room` | Room tone: very quiet filtered noise (made by ffmpeg, nothing licensed) under the whole voice track, so the gaps between lines are not dead digital silence. On by default at −60 dBFS; `--no-room` switches it off. |
 | `--music bed.mp3` `--music-db -30` | A quiet bed under the voice, ducked while it speaks. **Only a file you hold a licence for.** None is shipped. |
 | `--force` | Ignore the cache. |
 
@@ -38,9 +41,9 @@ timing and the edit with silent clips, **before spending any ElevenLabs characte
 |---|---|
 | `make.js` | The one command above. |
 | `recorder-kit.js` | Every helper a scenario needs: `launch` (2x capture), `openPage`, `segStart/segEnd`, `setChapter`, `titleCard`, `show(page, locator, caption, {click})`, `say`, `typeSlow`, `scroll`, `cut`, `finish`. It logs the camera targets and the captions instead of drawing them, and it is voice-aware: a step never ends before its spoken line has ended plus a breath. |
-| `overlay.js` | Injected into each page. Draws what must zoom with the page: the cursor (curved, eased glide; squish on press), the ring, spotlight and number badge, the ripple, the animated title cards. It also **blurs list rows that are not ours** (`window.__keep = [...]`) and menu items (`window.__menuKeep`), and hides counters (`window.__hideCounts`). |
+| `overlay.js` | Injected into each page. Draws what must zoom with the page: the cursor (curved, eased glide; squish on press), the ring, spotlight and number badge, the ripple, the animated title cards. It also **blurs list rows that are not ours** (`window.__keep = [...]`) and menu items (`window.__menuKeep`), and hides counters (`window.__hideCounts`); which rows and counters is set per app, see "Privacy" below. |
 | `voice.js` | ElevenLabs text-to-speech. `--list-voices`; `--voice <id>` makes one mp3 per line, each generated with its neighbours as context so the lines flow as one voice; `--stub` makes silent rehearsal clips. Cached; `voice/ledger.json` counts the characters billed. |
-| `assemble.js` + `camera.js` | The edit: clock sync, eased zoom and pan, cross-fades at every join, captions composited on top, voice laid in and normalised to −16 LUFS. |
+| `assemble.js` + `camera.js` | The edit: clock sync, eased zoom and pan, cross-fades at every join, captions composited on top (at the bottom, or at the top when they would cover their target), voice laid in and normalised to −16 LUFS, room tone under it. |
 | `build-guide.js` | Builds the HTML guide from `steps.json` and a `guide.json` (texts and translations). One file per language, images embedded, and it refuses to write HTML comments. |
 | `example/` | `record.example.js` (a 2-chapter scenario), `login.example.js` (saves sessions), `guide.example.json`. |
 
@@ -64,7 +67,10 @@ await kit.finish();
   `spotlight` (`false` = no dimming for this step), `ring` (a larger locator to frame, for example
   the whole settings row, while the cursor clicks the small switch inside it).
 - **Kit options:** `zoom`, `maxZoom` (1.5), `spotlight`, `accent` (`#rrggbb`), `xfade` (ms),
-  `viewport`, `locale`, `chapterWord`.
+  `viewport`, `locale`, `chapterWord`, `privacy` (see below).
+- **Captions.** A caption sits at the bottom. When the element it describes ends up under the bar
+  (a button low on the page), the edit puts that caption at the top instead; it fades in and out
+  there and never moves while it is on screen. `say` captions have no target and stay at the bottom.
 - **Joins.** Every title card and every `kit.cut` becomes a cross-fade in the edit, in the picture
   and in the sound. Use `kit.cut` for anything the viewer should not sit through.
 - **Zoom.** The camera goes to each `show` target and to the field during `typeSlow`. Two steps
@@ -72,10 +78,35 @@ await kit.finish();
   big to zoom on are left wide. Title cards are never zoomed and captions are never cropped: they
   are added after the zoom.
 
+## Privacy: what is blurred and hidden
+
+Nothing is blurred or hidden until the scenario asks for it, with an init script on the page's
+context: `window.__keep = ["Mario Prova"]` blurs every list row that contains none of these texts,
+`window.__menuKeep = [...]` does the same for menu items, `window.__hideCounts = true` hides counters.
+
+**Which elements are rows and counters depends on the app.** The defaults are the selectors of the
+app this skill was first written for (links to `/tickets/c…` and `/customers/c…`, a "Notifiche"
+button), so on another app set your own:
+
+```js
+const kit = require('./recorder-kit')({ overlay: 'overlay.js', privacy: {
+  rows: 'a[href^="/orders/"]',      // one element per list row; the row is blurred unless it holds a __keep text
+  rowBox: 'tr, li',                 // the ancestor that gets blurred (default 'tr, li'; the element itself if none)
+  counts: 'nav a span, header button *', // hidden when their whole text is a number ("12", "9+")
+  hide: '[data-unread]',            // always hidden
+  mainNumbers: true,                // also hide any bare number of 2+ digits inside <main> (default true)
+} });
+```
+
+Any key left out keeps its default; `''` or `false` switches that rule off. Always look at the
+stills afterwards: a selector that matches nothing blurs nothing, and says nothing.
+
 ## The run
 
 0. **Setup:** `npm i playwright`, then `npx playwright install chromium`. ffmpeg and ffprobe must be
-   on PATH.
+   on PATH. **ffmpeg 7.1 or newer** is what this is tested with: the filter graphs are passed with
+   `-/filter_complex <file>`, which older builds do not have. On an older build `assemble.js` falls
+   back to `-filter_complex_script`; that path is not tested, so upgrade if it fails.
 1. **Accounts.** Use throwaway test accounts on **staging**, with neutral names ("Responsabile
    Demo"). Put their passwords in `../pw-<who>.txt`, one folder above the working folder. Run
    `node login.js`. **Never type a real person's password into Playwright.**
@@ -88,7 +119,10 @@ await kit.finish();
    printed. Run `node voice.js --list-voices` and choose a native voice for the language.
 5. **Make it:** `node make.js --scenario record.js --guide guide.json --voice <id> --out out/name`.
    A warning that a line "runs past the end of its piece" or "starts before the previous one ended"
-   means the scenario bypassed the kit's waits: fix the scenario, do not ship it.
+   means the scenario bypassed the kit's waits: fix the scenario, do not ship it. A warning that the
+   page "is recorded at 1x" means the browser was started with `chromium.launch`: use `kit.launch`.
+   An error about **clock marks** means the recording could not be lined up with the log (see the
+   first trap): record again, do not work around it.
 6. **Before anything goes out:**
    - Extract frames at a few zooms and joins (`ffmpeg -ss <t> -i out.mp4 -frames:v 1 f.png`) and look at them.
    - `cut/timeline.json` lists when every spoken line starts and ends: check that none overlaps.
@@ -104,7 +138,14 @@ The steps can still be run one at a time: `VG_DRY=1 node record.js`, `node voice
 
 - **The recording's clock is not yours.** Playwright starts a page video up to a second or two after
   the page opens, differently on every run. The kit flashes two magenta marks (before and after the
-  visible part) and `assemble.js` finds them; never cut by wall-clock time alone.
+  visible part) and `assemble.js` finds them; never cut by wall-clock time alone. A recording can
+  lose one mark (it started late, or was cut short). `assemble.js` works out which one is left from
+  where the marks and the pieces can fit in the file, says so in a warning, and **stops with an
+  error** when it cannot be sure, instead of producing a video whose captions are out of step.
+- **Never take a CSS-pixel screenshot while recording.** `page.screenshot({ scale: 'css' })` drops
+  the page to 1x for an instant, and the recording keeps it: one or two frames of the page shrunk
+  into the top-left corner on grey. `kit.shot` takes the stills at the device scale for that
+  reason. If a scenario needs its own screenshot mid-recording, leave `scale` out.
 - **Playwright records CSS pixels.** `deviceScaleFactor: 2` alone gives a 1x picture in a corner of a
   2x frame. Only `--force-device-scale-factor=2` on the browser gives real 2x: use `kit.launch`.
 - **A changed line re-makes its two neighbours** (they were generated with it as context). Freeze the
@@ -122,10 +163,10 @@ The steps can still be run one at a time: `VG_DRY=1 node record.js`, `node voice
   is closed earlier.
 - **`getByText('Dettagli')` also matches "Dettaglio".** Use `{ exact: true }`.
 - **Accents and `…` get mangled through `python -c` or stdin.** Edit the scripts with the editor tool.
-- **ffmpeg 8 removed `-filter_complex_script` and `-vsync`.** The scripts use `-/filter_complex <file>`.
+- **ffmpeg 8 removed `-filter_complex_script` and `-vsync`.** The scripts use `-/filter_complex <file>` (ffmpeg 7.1+) and fall back to the old flag only on older builds.
 - **ElevenLabs:** a client-facing video needs a plan with a **commercial licence**. Check the plan.
 
 ## Hosting
 
-The mp4 is about 5–7 MB for 2 minutes at 1280x720, 50 fps. That is small enough to attach to an
+The mp4 is about 6–8 MB for 2 minutes at 1280x720, 50 fps. That is small enough to attach to an
 email. Otherwise share a Drive link.
