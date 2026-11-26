@@ -104,9 +104,9 @@ stills afterwards: a selector that matches nothing blurs nothing, and says nothi
 ## The run
 
 0. **Setup:** `npm i playwright`, then `npx playwright install chromium`. ffmpeg and ffprobe must be
-   on PATH. **ffmpeg 7.1 or newer** is what this is tested with: the filter graphs are passed with
-   `-/filter_complex <file>`, which older builds do not have. On an older build `assemble.js` falls
-   back to `-filter_complex_script`; that path is not tested, so upgrade if it fails.
+   on PATH. **Use ffmpeg 7.1 or newer** (developed and run on 9.0): the filter graphs are passed
+   with `-/filter_complex <file>`, which older builds do not have. On an older build `assemble.js`
+   falls back to `-filter_complex_script`; that path has never been run, so upgrade if it fails.
 1. **Accounts.** Use throwaway test accounts on **staging**, with neutral names ("Responsabile
    Demo"). Put their passwords in `../pw-<who>.txt`, one folder above the working folder. Run
    `node login.js`. **Never type a real person's password into Playwright.**

@@ -13,8 +13,9 @@
 //   --no-room  no room tone.
 //
 // Reads segments.json (pieces, camera log, captions, clock marks) and, when present, cues.json +
-// voice/manifest.json. Needs ffmpeg/ffprobe on PATH (5.1 or newer; the filter graphs are passed
-// with -/filter_complex on 7.1+, and with -filter_complex_script on older builds). Four passes,
+// voice/manifest.json. Needs ffmpeg/ffprobe on PATH. Developed and run on ffmpeg 9.0; the filter
+// graphs are passed with -/filter_complex (7.1+), and with -filter_complex_script on an older
+// build, a fallback that has not been run. Four passes,
 // each small enough to debug:
 //   1. clock   find the magenta marks in each recording, to convert our times into video times
 //   2. pieces  cut every piece and apply its camera move (eased zoom and pan, see camera.js)

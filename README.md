@@ -50,7 +50,7 @@ Update later with `/plugin marketplace update ibrahim-skills`.
 ### Requirements
 
 - Node.js 18+, then `npm i playwright` and `npx playwright install chromium` in your working folder
-- `ffmpeg` and `ffprobe` on your PATH, **version 7.1 or newer** (older builds use an untested fallback)
+- `ffmpeg` and `ffprobe` on your PATH, **version 7.1 or newer** (made on 9.0; older builds use a fallback that has not been run)
 - Optional, for the voice-over: an ElevenLabs API key in `~/.elevenlabs-key` or `ELEVENLABS_API_KEY`. For anything you publish or give to a client, use a plan whose licence allows commercial use.
 
 ### One command
